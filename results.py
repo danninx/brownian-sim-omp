@@ -1,9 +1,21 @@
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from scipy.stats import linregress
+import sys
 
-df = pd.read_csv('output.csv')
+filename = "output.csv"
+fig_filename = "plot.png"
+
+if len(sys.argv) != 2:
+    # Arguments are strings, so they must be converted to numbers
+    print(f"Usage: python results.py <csv>")
+    sys.exit(1)
+else:
+    filename = sys.argv[1]
+    fig_filename = filename.split(".")[0] + "-msd-plot.png"
+
+df = pd.read_csv('output.csv', comment='#')
 df.columns = df.columns.str.strip()
 
 time = df['Time']
@@ -27,5 +39,5 @@ plt.ylabel('Mean Squared Displacement (MSD)')
 plt.title(r'Brownian Motion Validation: MSD vs. Time ($\Delta t$ = 0.001)')
 plt.legend()
 plt.grid(True, linestyle=':', alpha=0.7)
-plt.savefig('msd_validation_plot.png', dpi=300)
+plt.savefig(fig_filename, dpi=300)
 plt.show()

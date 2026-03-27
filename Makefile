@@ -15,13 +15,13 @@ SRC = $(wildcard src/*.c)
 all: $(SERIAL_BIN) $(OPENMP_BIN)
 
 bin_dir:
-	mkdir -p $(BIN_DIR)
+	@mkdir -p $(BIN_DIR)
 
 clean:
-	rm -f $(BINARIES)
+	@rm -f $(SERIAL_BIN) $(OPENMP_BIN)
 
 $(SERIAL_BIN): bin_dir
-	$(CC) $(CFLAGS) $(GSL_FLAGS) $(SRC) -o $@
+	$(CC) $(CFLAGS) $(GSL_FLAGS) $(SRC) -Wno-unknown-pragmas -o $@
 
 $(OPENMP_BIN): bin_dir
 	$(CC) $(CFLAGS) $(GSL_FLAGS) $(OPENMP_FLAGS) $(SRC) -o $@
