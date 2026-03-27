@@ -15,7 +15,7 @@ else:
     filename = sys.argv[1]
     fig_filename = filename.split(".")[0] + "-msd-plot.png"
 
-df = pd.read_csv('output.csv', comment='#')
+df = pd.read_csv(filename, comment='#')
 df.columns = df.columns.str.strip()
 
 time = df['Time']

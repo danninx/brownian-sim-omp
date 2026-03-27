@@ -13,7 +13,7 @@ int main() {
 	brownian_results* results;
 	results = brownian_run_simulation(sim);
 
-	printf("# Time elapsed: %lf\n", results->elapsed);
+	printf("#%lf\n", results->elapsed);
 	printf("Time, MSD\n");
 	for (long i=0; i<results->iterations; i++) {
 		printf("%lf, %Lf\n", i * sim.time_step, results->displacements[i]);	
