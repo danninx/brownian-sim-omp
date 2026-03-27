@@ -1,6 +1,4 @@
 #include "simulation.h"
-#include <stdlib.h>
-#include <time.h>
 
 typedef struct pos3d {
 	double x, y, z;
@@ -96,12 +94,6 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 	    current_positions[i].z = curr_z;
 	}
 
-	// convert MSD's to means
-	#pragma omp parallel for
-	for (long i=0; i<num_iterations; i++) {
-		displacements[i] /= sim.num_particles;
-	}
-
 	#ifdef _OPENMP
 		end = omp_get_wtime();
 		double elapsed = end - start;
@@ -123,3 +115,50 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 	return results;
 };
 
+void setup_simulation(brownian_sim* sim) {
+	scanf("%ld", &sim->num_particles);
+	scanf("%lf", &sim->diffusion_coefficient);
+	scanf("%lf", &sim->time_step);
+	scanf("%lf", &sim->end_time);
+	sim->base_rng_seed = time(NULL);
+}
+
+void report_simulation_results(brownian_sim sim, brownian_results* results) {
+	// convert MSD's to means
+	#pragma omp parallel for
+	for (long i=0; i<results->iterations; i++) {
+		results->displacements[i] /= sim.num_particles;
+	}
+
+	printf("#%lf\n", results->elapsed);
+	printf("Time, MSD\n");
+	for (long i=0; i<results->iterations; i++) {
+		printf("%lf, %Lf\n", i * sim.time_step, results->displacements[i]);	
+	}
+}
+
+#ifdef MPI
+void setup_simulation_mpi(brownian_sim* sim, int comm_sz, int rank, MPI_Comm comm) {
+	if (rank == ROOT_RANK) {
+		setup_simulation(sim);
+		sim->num_particles /= comm_sz;
+	}	
+	MPI_Bcast(&sim->num_particles, 1, MPI_LONG, ROOT_RANK, comm);
+	MPI_Bcast(&sim->diffusion_coefficient, 1, MPI_DOUBLE, ROOT_RANK, comm);
+	MPI_Bcast(&sim->time_step, 1, MPI_DOUBLE, ROOT_RANK, comm);
+	MPI_Bcast(&sim->end_time, 1, MPI_DOUBLE, ROOT_RANK, comm);
+	sim->base_rng_seed = time(NULL);
+}
+
+void report_simulation_results_mpi(brownian_sim sim, brownian_results* results, int comm_sz, int rank, MPI_Comm comm) {
+	long total_particles = sim.num_particles * comm_sz;			
+	if (rank == ROOT_RANK) {
+		MPI_Reduce(MPI_IN_PLACE, results->displacements, results->iterations, MPI_LONG_DOUBLE, MPI_SUM, ROOT_RANK, comm);
+		MPI_Reduce(MPI_IN_PLACE, &results->elapsed, 1, MPI_DOUBLE, MPI_MAX, ROOT_RANK, comm);
+		report_simulation_results(sim, results);
+	} else {
+		MPI_Reduce(results->displacements, NULL, results->iterations, MPI_LONG_DOUBLE, MPI_SUM, ROOT_RANK, comm);
+		MPI_Reduce(&results->elapsed, NULL, 1, MPI_DOUBLE, MPI_MAX, ROOT_RANK, comm);
+	}
+}
+#endif

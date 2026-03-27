@@ -1,25 +1,37 @@
 #include "simulation.h"
-#include <stdio.h>
-#include <time.h>
+#include <mpi.h>
 
 int main() {
 	brownian_sim sim;
-	scanf("%ld", &sim.num_particles);
-	scanf("%lf", &sim.diffusion_coefficient);
-	scanf("%lf", &sim.time_step);
-	scanf("%lf", &sim.end_time);
-	sim.base_rng_seed = time(NULL);
+
+	#ifdef MPI
+		MPI_Init(NULL, NULL);
+
+		int comm_sz;
+		int rank;
+		MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+		setup_simulation_mpi(&sim, comm_sz, rank, MPI_COMM_WORLD);
+	#else
+		setup_simulation(&sim);
+	#endif
 
 	brownian_results* results;
 	results = brownian_run_simulation(sim);
 
-	printf("#%lf\n", results->elapsed);
-	printf("Time, MSD\n");
-	for (long i=0; i<results->iterations; i++) {
-		printf("%lf, %Lf\n", i * sim.time_step, results->displacements[i]);	
-	}
+	#ifdef MPI
+		report_simulation_results_mpi(sim, results, comm_sz, rank, MPI_COMM_WORLD);
+	#else
+		report_simulation_results(sim, results);
+	#endif
 
 	brownian_free_results(results);
 
+	#ifdef MPI
+		MPI_Finalize();
+	#endif
+
 	return 0;
 }
+
