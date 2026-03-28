@@ -1,20 +1,34 @@
 #include "simulation.h"
 #include <mpi.h>
 
-int main() {
+int main(int argc, char** argv) {
+	#ifdef MPI
+		MPI_INIT(&argc, &argv);
+	#endif
+
 	brownian_sim sim;
 
-	#ifdef MPI
-		MPI_Init(NULL, NULL);
+	if (argc != 5) {
+		#ifdef MPI
+			if (rank == ROOT_RANK) {
+				printf("Usage: mpirun -np X %s <particles> <diff_coeff> <time_step> <end_time>\n", argv[0]);
+			}
+			MPI_Finalize();
+		#else
+			printf("Usage: %s <particles> <diff_coeff> <time_step> <end_time>\n", argv[0]);
+		#endif
+		return 1;
+	}
 
+	#ifdef MPI
 		int comm_sz;
 		int rank;
 		MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-		setup_simulation_mpi(&sim, comm_sz, rank, MPI_COMM_WORLD);
+		setup_simulation_mpi(&sim, argv, comm_sz, rank, MPI_COMM_WORLD);
 	#else
-		setup_simulation(&sim);
+		setup_simulation(&sim, argv);
 	#endif
 
 	brownian_results* results;

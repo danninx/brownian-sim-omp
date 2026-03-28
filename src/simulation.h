@@ -19,12 +19,15 @@
 #include <time.h>
 #endif
 
+#define BASE_SEED 1024
+
 typedef struct brownian_sim {
 	double diffusion_coefficient;
 	double time_step;
 	double end_time;
 	long num_particles;
 	unsigned long base_rng_seed;
+	int rank;
 } brownian_sim;
 
 typedef struct brownian_results {
@@ -40,11 +43,11 @@ typedef struct brownian_results {
 
 brownian_results* brownian_run_simulation(brownian_sim sim);
 
-void setup_simulation(brownian_sim* sim);
+void setup_simulation(brownian_sim* sim, char** argv);
 void report_simulation_results(brownian_sim sim, brownian_results* results); 
 
 #ifdef MPI
-void setup_simulation_mpi(brownian_sim* sim, int comm_sz, int rank, MPI_Comm comm);
+void setup_simulation_mpi(brownian_sim* sim, char** argv, int comm_sz, int rank, MPI_Comm comm);
 void report_simulation_results_mpi(brownian_sim sim, brownian_results* results, int comm_sz, int rank, MPI_Comm comm);
 #endif
 

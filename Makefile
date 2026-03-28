@@ -1,6 +1,6 @@
 CC = gcc
 MPICC = mpicc
-CFLAGS = -Wall -O3 -lm
+CFLAGS = -Wall -lm
 GSL_FLAGS = -lgsl -lgslcblas
 OPENMP_FLAGS = -fopenmp
 
@@ -15,6 +15,7 @@ SRC = $(wildcard src/*.c)
 
 .PHONY: all bin_dir  clean
 
+all: CFLAGS += -O3
 all: $(SERIAL_BIN) $(OPENMP_BIN) $(MPI_SINGLE_THREADED_BIN) $(MPI_OMP_BIN)
 
 bin_dir:
@@ -22,6 +23,9 @@ bin_dir:
 
 clean:
 	@rm -f $(SERIAL_BIN) $(OPENMP_BIN)
+
+debug: CFLAGS += -g
+debug: $(SERIAL_BIN) $(OPENMP_BIN) $(MPI_SINGLE_THREADED_BIN) $(MPI_OMP_BIN) 
 
 $(SERIAL_BIN): bin_dir
 	$(CC) $(CFLAGS) $(GSL_FLAGS) $(SRC) -Wno-unknown-pragmas -o $@

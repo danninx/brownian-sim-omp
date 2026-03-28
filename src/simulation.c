@@ -1,4 +1,5 @@
 #include "simulation.h"
+#include <stdlib.h>
 
 typedef struct pos3d {
 	double x, y, z;
@@ -34,7 +35,7 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 	unsigned long base_seed = time(NULL);
 	for (int i=0; i<max_threads; i++) {
 		thread_rngs[i] = gsl_rng_alloc(rng_t);
-		gsl_rng_set(thread_rngs[i], base_seed + i);
+		gsl_rng_set(thread_rngs[i], base_seed + (sim.rank * max_threads) + i);
 	}
 
 	// setup starting particle positions
@@ -115,12 +116,14 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 	return results;
 };
 
-void setup_simulation(brownian_sim* sim) {
-	scanf("%ld", &sim->num_particles);
-	scanf("%lf", &sim->diffusion_coefficient);
-	scanf("%lf", &sim->time_step);
-	scanf("%lf", &sim->end_time);
+void setup_simulation(brownian_sim* sim, char** argv) {
+	sim->num_particles = atol(argv[1]);
+	sim->diffusion_coefficient = atof(argv[2]);
+	sim->time_step = atof(argv[3]);
+	sim->end_time = atof(argv[4]);
+
 	sim->base_rng_seed = time(NULL);
+	sim->rank = 0;
 }
 
 void report_simulation_results(brownian_sim sim, brownian_results* results) {
@@ -138,9 +141,9 @@ void report_simulation_results(brownian_sim sim, brownian_results* results) {
 }
 
 #ifdef MPI
-void setup_simulation_mpi(brownian_sim* sim, int comm_sz, int rank, MPI_Comm comm) {
+void setup_simulation_mpi(brownian_sim* sim, char** argv, int comm_sz, int rank, MPI_Comm comm) {
 	if (rank == ROOT_RANK) {
-		setup_simulation(sim);
+		setup_simulation(sim, argv);
 		sim->num_particles /= comm_sz;
 	}	
 	MPI_Bcast(&sim->num_particles, 1, MPI_LONG, ROOT_RANK, comm);
@@ -148,6 +151,7 @@ void setup_simulation_mpi(brownian_sim* sim, int comm_sz, int rank, MPI_Comm com
 	MPI_Bcast(&sim->time_step, 1, MPI_DOUBLE, ROOT_RANK, comm);
 	MPI_Bcast(&sim->end_time, 1, MPI_DOUBLE, ROOT_RANK, comm);
 	sim->base_rng_seed = time(NULL);
+	sim->rank = rank;
 }
 
 void report_simulation_results_mpi(brownian_sim sim, brownian_results* results, int comm_sz, int rank, MPI_Comm comm) {
@@ -155,6 +159,7 @@ void report_simulation_results_mpi(brownian_sim sim, brownian_results* results, 
 	if (rank == ROOT_RANK) {
 		MPI_Reduce(MPI_IN_PLACE, results->displacements, results->iterations, MPI_LONG_DOUBLE, MPI_SUM, ROOT_RANK, comm);
 		MPI_Reduce(MPI_IN_PLACE, &results->elapsed, 1, MPI_DOUBLE, MPI_MAX, ROOT_RANK, comm);
+		sim.num_particles = total_particles;
 		report_simulation_results(sim, results);
 	} else {
 		MPI_Reduce(results->displacements, NULL, results->iterations, MPI_LONG_DOUBLE, MPI_SUM, ROOT_RANK, comm);
