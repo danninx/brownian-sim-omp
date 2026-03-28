@@ -1,5 +1,5 @@
 CC = gcc
-MPICC = mpicc
+MPICC = mpicc -DMPI
 CFLAGS = -Wall -lm
 GSL_FLAGS = -lgsl -lgslcblas
 OPENMP_FLAGS = -fopenmp

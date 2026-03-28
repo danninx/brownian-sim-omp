@@ -3,7 +3,12 @@
 
 int main(int argc, char** argv) {
 	#ifdef MPI
-		MPI_INIT(&argc, &argv);
+		MPI_Init(&argc, &argv);
+
+		int comm_sz;
+		int rank;
+		MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	#endif
 
 	brownian_sim sim;
@@ -20,12 +25,8 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	#ifdef MPI
-		int comm_sz;
-		int rank;
-		MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+	#ifdef MPI
 		setup_simulation_mpi(&sim, argv, comm_sz, rank, MPI_COMM_WORLD);
 	#else
 		setup_simulation(&sim, argv);
