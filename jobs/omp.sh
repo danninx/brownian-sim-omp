@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH --job-name=brownian_test_serial_%a
-#SBATCH --output=logs/serial_%A_%a.out
+#SBATCH --job-name=brownian_omp_%a
+#SBATCH --output=logs/brownian_omp_%A_%a.out
 #SBATCH --array=1-6
 #SBATCH --time=04:30:00
 
