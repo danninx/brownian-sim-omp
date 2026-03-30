@@ -1,5 +1,8 @@
 #include "simulation.h"
+
+#ifdef MPI
 #include <mpi.h>
+#endif
 
 int main(int argc, char** argv) {
 	#ifdef MPI

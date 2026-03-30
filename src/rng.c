@@ -1,5 +1,4 @@
 #include "rng.h"
-#include <gsl/gsl_randist.h>
 
 /*
  * Since GSL isn't installed on the cluster yet, trying out a drop-in replacement
