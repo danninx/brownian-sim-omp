@@ -2,7 +2,7 @@
 #SBATCH --job-name=brownian_test_serial_%a
 #SBATCH --output=logs/serial_%A_%a.out
 #SBATCH --array=1-6
-#SBATCH --time=02:00:00
+#SBATCH --time=04:30:00
 
 # ---- JUST CHANGE THESE ----
 BIN="bin/brownian_mpi"
