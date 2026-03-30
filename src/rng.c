@@ -95,7 +95,7 @@ void rng_cleanup_custom(int max_threads) {
 
 void rng_init(unsigned long base_seed, int max_threads, int rank) {
 	#ifdef USE_GSL
-		rng_init_gsl(unsigned long base_seed, int max_threads, int rank);
+		rng_init_gsl(base_seed, max_threads, rank);
 	#else
 		rng_init_custom(base_seed, max_threads, rank);
 	#endif

@@ -18,6 +18,9 @@ SRC = $(wildcard src/*.c)
 all: CFLAGS += -O3
 all: $(SERIAL_BIN) $(OPENMP_BIN) $(MPI_SINGLE_THREADED_BIN) $(MPI_OMP_BIN)
 
+with_gsl: CFLAGS += $(GSL_FLAGS) -DUSE_GSL
+with_gsl: all
+
 bin_dir:
 	@mkdir -p $(BIN_DIR)
 
