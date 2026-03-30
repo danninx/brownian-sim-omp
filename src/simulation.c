@@ -1,5 +1,4 @@
 #include "simulation.h"
-#include "rng.h"
 
 typedef struct pos3d {
 	double x, y, z;
