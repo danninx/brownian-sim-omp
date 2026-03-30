@@ -1,5 +1,5 @@
 #include "simulation.h"
-#include <stdlib.h>
+#include "rng.h"
 
 typedef struct pos3d {
 	double x, y, z;
@@ -10,8 +10,6 @@ double square(double x) {
 }
 
 brownian_results* brownian_run_simulation(brownian_sim sim) {
-	gsl_rng_env_setup();
-	const gsl_rng_type *rng_t = gsl_rng_default;
 	const long num_iterations = (long) sim.end_time / sim.time_step; 
 	const double motion_coefficient = sqrt(2 * sim.diffusion_coefficient * sim.time_step);
 
@@ -29,15 +27,7 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 	#else
 		max_threads = 1;
 	#endif
-
-	gsl_rng** thread_rngs = malloc(max_threads * sizeof(gsl_rng*));
-	                                                                
-	unsigned long base_seed = time(NULL);
-	for (int i=0; i<max_threads; i++) {
-		thread_rngs[i] = gsl_rng_alloc(rng_t);
-		gsl_rng_set(thread_rngs[i], base_seed + (sim.rank * max_threads) + i);
-	}
-
+	rng_init(time(NULL), max_threads, sim.rank);
 	// setup starting particle positions
 	#pragma omp parallel for
 	for (size_t i=0; i<sim.num_particles; i++) {
@@ -47,11 +37,11 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 		#else
 			tid = 0;
 		#endif 
-		starting_positions[i].x = gsl_ran_gaussian(thread_rngs[tid], 1.0);
+		starting_positions[i].x = rng_gaussian(tid, 1.0);
 		current_positions[i].x = starting_positions[i].x;
-		starting_positions[i].y = gsl_ran_gaussian(thread_rngs[tid], 1.0);
+		starting_positions[i].y = rng_gaussian(tid, 1.0);
 		current_positions[i].y = starting_positions[i].y;
-		starting_positions[i].z = gsl_ran_gaussian(thread_rngs[tid], 1.0);
+		starting_positions[i].z = rng_gaussian(tid, 1.0);
 		current_positions[i].z = starting_positions[i].z;
 	}
 
@@ -83,9 +73,9 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 	
 	    for (int iteration = 0; iteration < num_iterations; iteration++) {
 	        
-	        curr_x += motion_coefficient * gsl_ran_gaussian(thread_rngs[tid], 1.0);
-	        curr_y += motion_coefficient * gsl_ran_gaussian(thread_rngs[tid], 1.0);
-	        curr_z += motion_coefficient * gsl_ran_gaussian(thread_rngs[tid], 1.0);
+	        curr_x += motion_coefficient * rng_gaussian(tid, 1.0);
+	        curr_y += motion_coefficient * rng_gaussian(tid, 1.0);
+	        curr_z += motion_coefficient * rng_gaussian(tid, 1.0);
 	        
 	        displacements[iteration] += (long double) (square(curr_x - start_x) + square(curr_y - start_y) + square(curr_z - start_z));
 	    }
@@ -108,10 +98,7 @@ brownian_results* brownian_run_simulation(brownian_sim sim) {
 
 	free(starting_positions);
 	free(current_positions);
-	for (int i=0; i<max_threads; i++) {
-		gsl_rng_free(thread_rngs[i]);
-	}
-	free(thread_rngs);
+	rng_cleanup(max_threads);
 	
 	return results;
 };

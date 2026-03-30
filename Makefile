@@ -28,14 +28,14 @@ debug: CFLAGS += -g
 debug: $(SERIAL_BIN) $(OPENMP_BIN) $(MPI_SINGLE_THREADED_BIN) $(MPI_OMP_BIN) 
 
 $(SERIAL_BIN): bin_dir
-	$(CC) $(CFLAGS) $(GSL_FLAGS) $(SRC) -Wno-unknown-pragmas -o $@
+	$(CC) $(CFLAGS) $(SRC) -Wno-unknown-pragmas -o $@
 
 $(OPENMP_BIN): bin_dir
-	$(CC) $(CFLAGS) $(GSL_FLAGS) $(OPENMP_FLAGS) $(SRC) -o $@
+	$(CC) $(CFLAGS) $(OPENMP_FLAGS) $(SRC) -o $@
 
 $(MPI_SINGLE_THREADED_BIN): bin_dir
-	$(MPICC) $(CFLAGS) $(GSL_FLAGS) $(SRC) -Wno-unknown-pragmas -o $@
+	$(MPICC) $(CFLAGS) $(SRC) -Wno-unknown-pragmas -o $@
 
 $(MPI_OMP_BIN): bin_dir
-	$(MPICC) $(CFLAGS) $(GSL_FLAGS) $(OPENMP_FLAGS) $(SRC) -o $@
+	$(MPICC) $(CFLAGS) $(OPENMP_FLAGS) $(SRC) -o $@
 

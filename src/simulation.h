@@ -1,12 +1,12 @@
 #ifndef BROWNIAN_MOTION_SIMULATION
 #define BROWNIAN_MOTION_SIMULATION
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 #include <math.h>
-#include <stdlib.h>
 #include <time.h>
+
+#include "rng.h"
 
 #ifdef MPI
 #include <mpi.h>
