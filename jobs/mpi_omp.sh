@@ -21,7 +21,7 @@ export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
 
 # time the program
 START=$(date +%s.%N)
-prun $BIN $PARAMS > /dev/null
+prun $BIN $PARAMS
 END=$(date +%s.%N)
 WALL_TIME=$(awk -v t1="$START" -v t2="$END" 'BEGIN {printf "%.3f", t2-t1}')
 
